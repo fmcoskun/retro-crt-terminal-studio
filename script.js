@@ -1125,17 +1125,17 @@ function renderJetGame(themeObj) {
   $.strokeRect(offsetX, offsetY, arenaW, arenaH);
 
   $.beginPath();
-
+  $.moveTo(studio.jetX, jetY - 18);
   $.lineTo(studio.jetX + 6, jetY - 6);
-
+  $.lineTo(studio.jetX + 22, jetY + 6);
   $.lineTo(studio.jetX + 8, jetY + 8);
-
+  $.lineTo(studio.jetX + 11, jetY + 16);
   $.lineTo(studio.jetX + 3, jetY + 13);
-
+  $.lineTo(studio.jetX, jetY + 18);
   $.lineTo(studio.jetX - 3, jetY + 13);
-
+  $.lineTo(studio.jetX - 11, jetY + 16);
   $.lineTo(studio.jetX - 8, jetY + 8);
-
+  $.lineTo(studio.jetX - 22, jetY + 6);
   $.lineTo(studio.jetX - 6, jetY - 6);
   $.closePath();
   $.stroke();
@@ -1220,7 +1220,19 @@ function renderJetGame(themeObj) {
 }
 
 var HOLO_F35_VERTS = [
-
+  [0, 0, 42],
+  [-7, -3, 18],
+  [7, -3, 18],
+  [0, -8, 12],
+  [-36, 2, -6],
+  [36, 2, -6],
+  [-12, 2, -24],
+  [12, 2, -24],
+  [-16, -15, -30],
+  [16, -15, -30],
+  [0, 1, -36],
+  [-22, 3, -18],
+  [22, 3, -18]
 ];
 
 var HOLO_F35_EDGES = [
@@ -1259,7 +1271,7 @@ function project3DPoint(pt, ax, ay, cx, cy, scale) {
 }
 
 function draw3DHologram(themeObj) {
-  if (studio.hologramMode === 'off' || w < 520 || h < 240) return;
+  if (studio.hologramMode === 'off' || w < 320 || h < 180) return;
   var osdPanel = document.getElementById('osdPanel');
   if (osdPanel && !osdPanel.classList.contains('hidden')) return;
 
@@ -1352,7 +1364,7 @@ function draw3DHologram(themeObj) {
 }
 
 function drawTacticalRadar(themeObj) {
-  if (!studio.telemetryVisible || w < 520 || h < 320) return;
+  if (!studio.telemetryVisible || w < 320 || h < 220) return;
   var sc = w < 780 ? 0.78 : 1;
   var cx = w - Math.round(94 * sc);
   var cy = h - Math.round(76 * sc);
@@ -1392,7 +1404,7 @@ function drawTacticalRadar(themeObj) {
     $.stroke();
   }
 
-  $.font = '9px monospace';
+  $.font = Math.max(8, Math.round(9 * sc)) + 'px monospace';
   for (var b = 0; b < studio.radarBlips.length; b++) {
     var blip = studio.radarBlips[b];
     var bx = cx + Math.cos(blip.a) * (rad * blip.r);
@@ -1407,8 +1419,8 @@ function drawTacticalRadar(themeObj) {
   }
 
   $.globalAlpha = 0.85;
-  $.font = '10px monospace';
-  $.fillText('AESA RADAR 360°', cx - 44, cy - rad - 14);
+  $.font = Math.max(8, Math.round(10 * sc)) + 'px monospace';
+  $.fillText('AESA RADAR 360°', cx - 44 * sc, cy - rad - 14 * sc);
   $.restore();
 }
 
