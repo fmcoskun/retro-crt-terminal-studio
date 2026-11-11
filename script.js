@@ -1647,14 +1647,60 @@ function updateTelemetryAndOscilloscope(themeObj) {
   studio.oscEnergy *= 0.88;
 }
 
+// Background world map for the Global Cyber Map template (world-map.svg, 1256x972).
+// The SVG has ~2200 paths with filters, so it is rasterized and phosphor-tinted once
+// per size/theme into an offscreen canvas instead of being drawn every frame.
+var WORLD_MAP_SRC = 'world-map.svg';
+var worldMap = { img: null, ready: false, failed: false, cache: null, cacheKey: '' };
+
+function loadWorldMap() {
+  if (worldMap.img) return;
+  worldMap.img = new Image();
+  worldMap.img.onload = function () {
+    worldMap.ready = true;
+  };
+  worldMap.img.onerror = function () {
+    worldMap.failed = true;
+  };
+  worldMap.img.src = WORLD_MAP_SRC;
+}
+
+function getTintedWorldMap(mapW, mapH, color) {
+  if (!worldMap.ready) return null;
+  var cw = Math.max(1, Math.round(mapW));
+  var ch = Math.max(1, Math.round(mapH));
+  var key = cw + 'x' + ch + '|' + color;
+  if (worldMap.cache && worldMap.cacheKey === key) return worldMap.cache;
+  var off = document.createElement('canvas');
+  off.width = cw;
+  off.height = ch;
+  var octx = off.getContext('2d');
+  octx.drawImage(worldMap.img, 0, 0, cw, ch);
+  octx.globalCompositeOperation = 'source-in';
+  octx.fillStyle = color;
+  octx.fillRect(0, 0, cw, ch);
+  worldMap.cache = off;
+  worldMap.cacheKey = key;
+  return off;
+}
+
 function drawCyberMapArcs(themeObj) {
   if (studio.template !== 'cybermap') return;
   $.save();
   $.setTransform(1, 0, 0, 1, 0, 0);
-  var mapW = Math.min(w * 0.78, 920);
+  // Fit the map inside the screen in both directions so it is never cropped.
+  var mapW = Math.min(w * 0.78, 920, Math.max(120, h - 40) * (1256 / 972));
   var mapH = mapW * (972 / 1256);
   var mapX = (w - mapW) * 0.5;
   var mapY = Math.max(20, (h - mapH) * 0.5);
+
+  loadWorldMap();
+  var mapLayer = getTintedWorldMap(mapW, mapH, themeObj.hudColor);
+  if (mapLayer) {
+    $.globalAlpha = 0.16;
+    $.shadowBlur = 0;
+    $.drawImage(mapLayer, mapX, mapY, mapW, mapH);
+  }
 
   var nodes = [
     { name: 'NYC', x: mapX + mapW * 0.25, y: mapY + mapH * 0.34 },

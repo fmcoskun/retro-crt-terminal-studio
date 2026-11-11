@@ -114,6 +114,8 @@ retro-crt-terminal-studio/
 ├── index.html         # CRT HUD kontrolleri, OSD menüsü, Stüdyo modalı ve Türk Bayrağı Quine
 ├── style.css          # Tam ekran duyarlı (responsive) CRT çerçevesi, tarama çizgileri ve animasyonlar
 ├── script.js          # 2B/3B Kanvas motoru, Web Audio sentezleyici, şablonlar, CLI ve oyunlar
+├── world-map.svg      # Küresel Siber Harita şablonunun arka plan dünya haritası
 ├── preview.gif        # Animasyonlu CRT terminal önizleme görseli
 └── README.md          # İki dilli (EN/TR) proje dokümantasyonu
 ```
+
