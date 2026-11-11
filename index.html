@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Old-School Script Relay — Retro CRT Studio</title>
+  <link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body class="crt-enabled crt-power-on">
+
+  <div class="app-shell">
+    <header class="hud-panel" id="hudPanel">
+      <button class="hud-btn" id="btnToggleHud" title="Minimize / Expand Header">[–]</button>
+      <div class="hud-controls">
+        <div class="hud-group">
+          <button class="hud-btn" id="btnPower" title="Monitor Power On/Off">⏻</button>
+          <button class="hud-btn" id="btnPlayPause" title="Pause / Resume (Space)">⏸ Pause</button>
+          <button class="hud-btn" id="btnStep" title="Step to Next Line (N)">⏭ Step</button>
+          <button class="hud-btn" id="btnRestart" title="Restart Relay (R)">↺ Restart</button>
+        </div>
+
+        <div class="hud-group">
+          <span class="hud-label" id="lblSpeed">Speed</span>
+          <select class="hud-select" id="selectSpeed" title="Typing Speed">
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="2">2x</option>
+            <option value="5" id="optTurbo">5x Turbo</option>
+            <option value="50" id="optInstant">Instant</option>
+          </select>
+        </div>
+
+        <div class="hud-group">
+          <span class="hud-label" id="lblTheme">Theme</span>
+          <select class="hud-select" id="selectTheme" title="Monitor Phosphor Theme">
+            <option value="green" selected>P1 Green</option>
+            <option value="amber">P3 Amber</option>
+            <option value="cyan">IBM Cyan</option>
+            <option value="synthwave">Synthwave</option>
+            <option value="matrix">Matrix Rain</option>
+          </select>
+        </div>
+
+        <div class="hud-group">
+          <span class="hud-label" id="lblTemplate">Template</span>
+          <select class="hud-select" id="selectTemplate" title="Select Scenario Template">
+            <option value="quine" id="optTplQuine" selected>Self-Relay (Turkish Flag)</option>
+            <option value="bios" id="optTplBios">1989 BIOS Boot</option>
+            <option value="hack" id="optTplHack">Cyberpunk Mainframe</option>
+            <option value="starship" id="optTplStarship">F-35 Fighter Telemetry</option>
+            <option value="cybermap" id="optTplCybermap">Global Cyber Map</option>
+            <option value="custom" id="optTplCustom">Custom Code / Text...</option>
+          </select>
+          <button class="hud-btn" id="btnCustomCode" title="Custom Code, ASCII Banner & Image Converter">✎ Studio</button>
+        </div>
+
+        <div class="hud-group">
+          <button class="hud-btn" id="btnHuman" title="Humanized Typing Rhythm & Backspace Typos">🤖 Human</button>
+          <button class="hud-btn" id="btnCursor" title="Switch Cursor Style">Cursor: █</button>
+          <button class="hud-btn active" id="btnSyntax" title="Toggle Syntax Highlighting">Syntax</button>
+          <button class="hud-btn active" id="btnCrt" title="Toggle CRT Scanlines">CRT</button>
+          <button class="hud-btn" id="btnDegauss" title="Trigger Magnetic CRT Degauss">🧲 Degauss</button>
+          <button class="hud-btn" id="btnGlitch" title="Trigger Signal Glitch (G)">⚡ Glitch</button>
+          <button class="hud-btn" id="btnSound" title="Toggle Keystroke Audio (M)">🔇 Mute</button>
+          <button class="hud-btn" id="btnMusic" title="Toggle Synthwave Chiptune Music">🎵 Music</button>
+          <button class="hud-btn" id="btnOsd" title="Monitor OSD Setup Menu">⚙ OSD</button>
+          <button class="hud-btn active" id="btnHologram" title="Cycle 3D Wireframe Hologram (F-35 / Globe / Cube / Off)">🌐 3D</button>
+          <button class="hud-btn active" id="btnTelemetry" title="Toggle Tactical Radar & Oscilloscope">📡 Radar</button>
+          <button class="hud-btn" id="btnCli" title="Jump Directly to Interactive CLI">💻 CLI</button>
+          <button class="hud-btn" id="btnSnake" title="Launch Retro CRT Snake Game">🐍 Snake</button>
+          <button class="hud-btn" id="btnJet" title="Launch F-35 Tactical Interceptor Arcade Game">✈️ Jet</button>
+          <button class="hud-btn" id="btnScreenshot" title="Download Instant PNG Screenshot">📷 PNG</button>
+          <button class="hud-btn" id="btnRecord" title="Record Canvas Video (.webm)">⏺ Rec</button>
+          <button class="hud-btn" id="btnShare" title="Copy Shareable Permalink URL">🔗 Share</button>
+        </div>
+      </div>
+
+      <button class="hud-btn lang-btn" id="btnLang" title="Türkçe Dil Desteği / Switch Language">🇹🇷 TR</button>
+    </header>
+
+    <main class="screen-frame" id="screenFrame">
+      <canvas id="oldSkool"></canvas>
+      <div class="crt-overlay" aria-hidden="true"></div>
+
+      <div class="osd-panel hidden" id="osdPanel">
+        <div class="osd-header">
+          <span id="lblOsdTitle">[CRT MONITOR OSD SETUP v2.4]</span>
+          <button class="hud-btn" id="btnCloseOsd">✕</button>
+        </div>
+        <div class="osd-row">
+          <label for="rngGlow" id="lblOsdGlow">PHOSPHOR GLOW</label>
+          <input type="range" id="rngGlow" min="0" max="24" step="1" value="9" />
+          <span id="valGlow">9px</span>
+        </div>
+        <div class="osd-row">
+          <label for="rngTrail" id="lblOsdTrail">TRAIL PERSISTENCE</label>
+          <input type="range" id="rngTrail" min="15" max="85" step="5" value="42" />
+          <span id="valTrail">42%</span>
+        </div>
+        <div class="osd-row">
+          <label for="rngFont" id="lblOsdFont">FONT SIZE</label>
+          <input type="range" id="rngFont" min="12" max="24" step="1" value="17" />
+          <span id="valFont">17px</span>
+        </div>
+        <div class="osd-row">
+          <label for="rngMargin" id="lblOsdMargin">SCREEN MARGIN</label>
+          <input type="range" id="rngMargin" min="16" max="96" step="4" value="32" />
+          <span id="valMargin">32px</span>
+        </div>
+        <div class="osd-row">
+          <label for="rngVolume" id="lblOsdVolume">AUDIO VOLUME</label>
+          <input type="range" id="rngVolume" min="5" max="100" step="5" value="50" />
+          <span id="valVolume">50%</span>
+        </div>
+        <div class="osd-row">
+          <label for="selSoundType" id="lblOsdSoundType">SOUND PROFILE</label>
+          <select class="hud-select" id="selSoundType">
+            <option value="mech" id="optSndMech" selected>Mechanical Key</option>
+            <option value="beep" id="optSndBeep">8-Bit Terminal Beep</option>
+            <option value="typewriter" id="optSndType">Classic Typewriter</option>
+          </select>
+        </div>
+        <div class="osd-row">
+          <label for="btnLineNums" id="lblOsdLineNums">LINE NUMBERS (001 |)</label>
+          <button class="hud-btn" id="btnLineNums">OFF</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <div class="status-bar" id="statusBar">
+        <span id="statusState">STATUS: TYPING</span>
+        <span id="statusPos">LINE: 1/1 | COL: 0</span>
+        <span class="status-shortcuts" id="statusShortcuts">SHORTCUTS: [SPACE] Pause | [N] Step | [R] Restart | [G] Glitch | [M] Sound | [CLI: help, ls, cat, jet, 3d, run]</span>
+      </div>
+
+      <div class="telemetry-widget" id="telemetryWidget">
+        <div class="telemetry-info">
+          <div class="telemetry-header">
+            <span id="lblOscTitle">OSCILLOSCOPE</span>
+            <span id="telemetryFps">60 FPS</span>
+          </div>
+          <div class="telemetry-stats">
+            <span id="telemetryCps">RATE: 0 CHAR/S</span>
+            <span id="telemetryPct">0%</span>
+          </div>
+          <div class="telemetry-bar-bg">
+            <div class="telemetry-bar-fill" id="telemetryBarFill"></div>
+          </div>
+        </div>
+        <canvas id="oscCanvas" width="150" height="36"></canvas>
+      </div>
+    </footer>
+  </div>
+
+  <div class="modal-backdrop hidden" id="customModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span id="lblModalTitle">CUSTOM CODE & ASCII ART STUDIO</span>
+        <button class="hud-btn" id="btnCloseModal">✕</button>
+      </div>
+
+      <div class="studio-toolbar">
+        <input type="text" class="modal-input" id="bannerInput" maxlength="18" placeholder="Banner text (e.g. HELLO)" />
+        <button class="hud-btn" id="btnInsertBanner" title="Insert Text as Large Block ASCII Art">🔤 Add ASCII Banner</button>
+        <label class="hud-btn file-label" id="lblImageAscii" title="Convert Image File to ASCII Art">
+          <span id="txtImageAscii">🖼️ Image to ASCII</span>
+          <input type="file" id="imageAsciiInput" accept="image/*" hidden />
+        </label>
+        <button class="hud-btn" id="btnRunJs" title="Execute JavaScript Code & Print Output to Terminal">⚡ Run JS</button>
+        <button class="hud-btn" id="btnSaveLocal" title="Save to Browser Storage">💾 Save</button>
+        <button class="hud-btn" id="btnResetCustom" title="Restore Default Custom Code">↺ Reset</button>
+      </div>
+
+      <textarea class="modal-textarea" id="customTextarea" spellcheck="false" placeholder="Paste or type custom code or ASCII art to relay onto the CRT screen..."></textarea>
+      <div class="modal-actions">
+        <span class="modal-hint" id="saveStatusHint"></span>
+        <button class="hud-btn" id="btnCancelModal">Cancel</button>
+        <button class="hud-btn active" id="btnApplyModal">▶ Relay to Screen</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+  //BEGIN SCRIPT RELAY TO CRT TERMINAL... 
+  
+  _s = db.querySelectorAll("script")[1].innerHTML.split("\n");
+  x = 0; 
+  y = 1; 
+  c.width = w = window.innerWidth;
+  c.height = h = _s.length*20;
+  db.style.margin = 0;
+  db.style.background = "hsla(0,0%,0%,1)";
+  db.style.overflow = "hidden";
+  $.textBaseline = "top";
+  $.font = "1.1em monospace";
+  
+//PAUSE RELAY: DRAW TURKISH FLAG (CRESCENT & STAR / AY-YILDIZ)...
+/*
+  +==================================================================+
+  |                                                                  |
+  |                     ▄▄▄▄▄                                        |
+  |               ▄▄█████████████▄▄                                  |
+  |            ▄████████▀▀▀       ▀▀▀▄                               |
+  |          ▄███████▀▀                                              |
+  |         ████████                        █▄                       |
+  |        ████████                         ███▄▄▄▄██                |
+  |        ███████                     ▄▄▄▄████████▀                 |
+  |        ███████                     ▀▀▀▀████████▄                 |
+  |        ████████                         ███▀▀▀▀██                |
+  |         ████████                        █▀                       |
+  |          ▀███████▄▄                                              |
+  |            ▀████████▄▄▄       ▄▄▄▀                               |
+  |               ▀▀█████████████▀▀                                  |
+  |                     ▀▀▀▀▀                                        |
+  |                                                                  |
+  |             * * *   A Y - Y I L D I Z   * * *                    |
+  +==================================================================+
+*/
+//RESUME SCRIPT RELAY...
+  
+resume = function(){
+    $.globalCompositeOperation = "source-over";
+    $.shadowBlur = 0; $.fillStyle = "hsla(0,0%,0%,0.4)";
+    $.fillRect(0,0,w,h);
+    $.shadowColor = "hsla(120,100%,50%,0.5)";
+    $.shadowBlur = 9; $.fillStyle = "hsla(120,100%,20%,1)";
+    $.globalCompositeOperation = "lighter";
+  _s.forEach(function(t, i) {
+      if (i <= y) {
+        if (i == y) { t = t.substr(0, x); }
+        $.fillText(t, 100, 100+i*16);		}
+	});
+                 
+	$.fillStyle = "hsla(120,100%,50%,1)";
+	$.fillRect(100+$.measureText(_s[y].substr(0, x)).width, 102+y*16, 10, 14);
+	x++;
+		if (x >= _s[y].length) { y++; x = 0;}
+			if (y*16 > innerHeight-200) { $.translate(0, -0.5);}
+				if (y >= _s.length-1) { window.cancelAnimationFrame(animId);}}
+  
+relay();
+  
+//END SCRIPT RELAY _
+  </script>
+</body>
+
+</html>
