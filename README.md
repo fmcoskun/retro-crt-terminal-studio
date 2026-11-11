@@ -1,7 +1,6 @@
 <div align="center">
 
 # 🖥️ Retro CRT Terminal & ASCII Art Studio
-### *(Old-School Script Relay)*
 
 [![Deploy to GitHub Pages](https://github.com/fmcoskun/retro-crt-terminal-studio/actions/workflows/deploy.yml/badge.svg)](https://github.com/fmcoskun/retro-crt-terminal-studio/actions/workflows/deploy.yml)
 ![HTML5 Canvas](https://img.shields.io/badge/HTML5-Canvas_2D-E34F26?logo=html5&logoColor=white)
