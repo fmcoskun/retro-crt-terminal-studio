@@ -1775,7 +1775,8 @@ function renderStudioFrame() {
   if (studio.theme === 'matrix' || studio.matrixOverlay) {
     drawMatrixRain();
   }
-  if (studio.template === 'cybermap') {
+  // The world map is the cyber map template's backdrop; keep it off the Snake/Jet game screens.
+  if (studio.template === 'cybermap' && !studio.snakeActive && !studio.jetActive) {
     drawCyberMapArcs(themeObj);
   }
 
