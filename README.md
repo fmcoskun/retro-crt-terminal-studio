@@ -30,11 +30,11 @@
 | **📜 Built-in Scenario Templates** | **1. Self-Relay (Turkish Flag / Ay-Yıldız Quine)**<br>**2. 1989 BIOS Boot Sequence**<br>**3. Cyberpunk Mainframe Intrusion**<br>**4. F-35 Lightning II 3-View Stealth Blueprint & Telemetry**<br>**5. Global Cyber Threat & Satellite Backbone Map** (with live animated Bezier packet arcs) |
 | **🌐 3D Wireframe Hologram** | Real-time 3D perspective projection engine rendering rotating **F-35A Stealth Fighter**, **3D Lat/Lon Globe**, and **4D Hypercube (Tesseract)** models (`🌐 3D`). |
 | **📡 360° Tactical AESA Radar** | Rotating phosphor sweep sector with target distance rings and live contact blips (`MIG-29`, `UAV-X4`, `BOGEY`, `AWACS`). |
-| **🎹 Web Audio & Oscilloscope** | Procedural keystroke synthesizer (*Mechanical Key*, *8-Bit Beep*, *Classic Typewriter*), 125 BPM **Synthwave / Chiptune** sequencer (`🎵 Music`), and real-time `AnalyserNode` frequency oscilloscope. |
+| **🎹 Web Audio & Oscilloscope** | Procedural keystroke synthesizer (*Mechanical Key*, *8-Bit Beep*, *Classic Typewriter*), 125 BPM **Synthwave / Chiptune** sequencer (`🎵 Music`), and real-time `AnalyserNode` waveform oscilloscope. |
 | **✎ Custom Code & ASCII Studio** | Live code/text relay editor with automatic responsive word-wrapping, **5-row Block ASCII Banner Generator**, **Image-to-ASCII Converter**, **Live JavaScript Sandbox (`⚡ Run JS`)**, browser storage save (`💾 Save`), and instant default restore (`↺ Reset`). |
 | **💻 Interactive CLI & Virtual FS** | Full post-relay command-line interface with a virtual filesystem (`ls`, `cat`), live JS evaluation (`run`, `calc`), brute-force simulator (`hack`), and system controls. |
 | **🕹️ Retro CRT Arcade Games** | Built-in **F-35 Tactical Interceptor (`✈️ Jet`)** space-shooter and **Retro CRT Snake (`🐍 Snake`)** playable directly on the phosphor canvas. |
-| **🎥 Recording & Sharing** | One-click **PNG Screenshot (`📷 PNG`)**, **60 FPS WebM Video Recorder (`⏺ Rec`)**, and **Base64 URL Hash Permalink (`🔗 Share`)**. |
+| **🎥 Recording & Sharing** | One-click **PNG Screenshot (`📷 PNG`)**, **60 FPS Canvas Video Recorder — WebM / MP4 (`⏺ Rec`)**, and **Base64 URL Hash Permalink (`🔗 Share`)**. |
 | **🌍 Bilingual UI (EN / TR)** | Instant switch between **English** and **Turkish (`🇹🇷 TR` / `🇬🇧 EN`)** from the top-right header bar. |
 
 ### 💻 Interactive CLI Commands
@@ -58,6 +58,8 @@ template <quine|bios|hack|starship|cybermap> # Load scenario template
 banner HELLO WORLD                    # Render large block-pixel ASCII banner
 hack 192.0.2.99                       # Run animated SSH packet decryption simulation
 rec / export / share / clear          # Record video, save PNG, copy permalink, or clear screen
+speed 2 / glitch / degauss / replay   # Typing speed, signal glitch, degauss coil, replay script
+whoami / date                         # Show operator info / current date
 ```
 
 ### ⌨️ Keyboard Shortcuts
@@ -68,6 +70,19 @@ rec / export / share / clear          # Record video, save PNG, copy permalink, 
 * **`G`** — Trigger electromagnetic signal glitch
 * **`M`** — Toggle keystroke audio synthesizer
 * **`Arrow Keys` / `WASD`** — Pilot F-35 fighter or steer Snake (`Esc` to exit game)
+* **`Esc`** — Close the Custom Code & ASCII Studio window
+
+### 🚀 Getting Started
+
+Zero dependencies, no build step. Clone the repository and open [`index.html`](./index.html) directly in your browser, or serve the folder locally:
+
+```bash
+git clone https://github.com/fmcoskun/retro-crt-terminal-studio.git
+cd retro-crt-terminal-studio
+npx serve .            # or: python -m http.server 8080
+```
+
+Every push to `main` is syntax-checked and deployed to GitHub Pages by [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml).
 
 ---
 
@@ -86,7 +101,18 @@ rec / export / share / clear          # Record video, save PNG, copy permalink, 
 * **📡 360° Taktik AESA Radar & Osiloskop:** Sağ alt köşede dönen radar taraması ve alt barda gerçek zamanlı Web Audio `AnalyserNode` ses frekans osiloskopu.
 * **✎ Özel Kod & ASCII Sanat Stüdyosu:** Otomatik satır kaydırma (word-wrap), **ASCII Banner Üretici**, **Resimden ASCII Dönüştürücü**, **Canlı JS Çalıştırıcı (`⚡ JS Çalıştır`)**, tarayıcı hafızasına kaydetme (`💾 Kaydet`) ve varsayılan kodu geri yükleme (`↺ Sıfırla`).
 * **🕹️ Çift Retro Oyun Modu:** Doğrudan CRT ekranında oynanabilen **F-35 Hava Savunma (`✈️ F-35`)** ve **Retro Yılan (`🐍 Snake`)** oyunları.
-* **🎥 Kayıt ve Paylaşım:** Tek tıkla **PNG Ekran Görüntüsü**, **WebM Video Kaydı (`⏺ Kayıt`)** ve **Paylaşılabilir URL Permalink (`🔗 Paylaş`)**.
+* **🎥 Kayıt ve Paylaşım:** Tek tıkla **PNG Ekran Görüntüsü**, **WebM / MP4 Video Kaydı (`⏺ Kayıt`)** ve **Paylaşılabilir URL Permalink (`🔗 Paylaş`)**.
+* **💻 Etkileşimli Terminal (CLI):** Daktilo bittikten sonra (veya **`💻 CLI`** butonuyla hemen) klavyeden komut yazılabilir. Tüm komutlar için terminale `help` yazın; komut listesi yukarıdaki [Interactive CLI Commands](#-interactive-cli-commands) bölümündedir.
+
+### ⌨️ Klavye Kısayolları
+
+* **`Space`** — Daktiloyu duraklat / devam ettir (F-35 oyununda ateş et)
+* **`N`** — Sonraki satıra atla
+* **`R`** — Senaryoyu baştan başlat
+* **`G`** — Sinyal bozulması (glitch) tetikle
+* **`M`** — Tuş sesini aç / kapat
+* **`Yön Tuşları` / `WASD`** — F-35'i veya yılanı yönet (`Esc` ile oyundan çık)
+* **`Esc`** — Özel Kod & ASCII Stüdyosu penceresini kapat
 
 ### 🚀 Kurulum ve Çalıştırma
 

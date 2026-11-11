@@ -78,7 +78,6 @@ var studio = {
   hologramMode: 'f35',
   hologramModes: ['f35', 'globe', 'cube', 'off'],
   holoAngleY: 0.4,
-  holoAngleX: 0.28,
   radarAngle: 0,
   radarBlips: [
     { a: 0.65, r: 0.46, label: 'MIG-29' },
@@ -86,7 +85,6 @@ var studio = {
     { a: 3.85, r: 0.58, label: 'BOGEY' },
     { a: 5.15, r: 0.34, label: 'AWACS' }
   ],
-  lastFrameTime: performance.now(),
   frameCount: 0,
   fps: 60,
   charsTypedThisSec: 0,
@@ -865,7 +863,7 @@ function loadRelayScript(linesArray) {
   updatePlayPauseUI();
 }
 
-function getLineColor(lineText, lineIndex, inBlockComment, themeObj) {
+function getLineColor(lineText, inBlockComment, themeObj) {
   if (!studio.syntaxEnabled) return themeObj.baseText;
   var trimmed = lineText.trim();
   if (trimmed.indexOf('/*') === 0 || trimmed.indexOf('*/') !== -1 || trimmed.indexOf('//') === 0) {
@@ -1848,7 +1846,7 @@ function renderStudioFrame() {
         $.fillText(numStr, metrics.padLeft, lineY);
       }
 
-      $.fillStyle = getLineColor(rawLine, i, inBlockComment, themeObj);
+      $.fillStyle = getLineColor(rawLine, inBlockComment, themeObj);
       $.fillText(drawLine, textStartX, lineY);
 
       if (i === y && !studio.finished && drawLine.length > 0) {
@@ -2116,6 +2114,7 @@ function executeCliCommand(rawCmd) {
         studio.cliHistory.push({ text: '  theme <green|amber|cyan|synthwave|matrix> - Renk temasını değiştirir', isCmd: false });
         studio.cliHistory.push({ text: '  template <quine|bios|hack|starship|cybermap> - Senaryo şablonunu yükler', isCmd: false });
         studio.cliHistory.push({ text: '  banner <metin> | hack <hedef> | export | rec | share | clear', isCmd: false });
+        studio.cliHistory.push({ text: '  speed <n> | glitch | degauss | replay | whoami | date', isCmd: false });
       } else {
         studio.cliHistory.push({ text: 'Available Terminal Commands:', isCmd: false });
         studio.cliHistory.push({ text: '  ls | cat <file>                           - Browse virtual filesystem', isCmd: false });
@@ -2126,6 +2125,7 @@ function executeCliCommand(rawCmd) {
         studio.cliHistory.push({ text: '  theme <green|amber|cyan|synthwave|matrix> - Switch CRT color palette', isCmd: false });
         studio.cliHistory.push({ text: '  template <quine|bios|hack|starship|cybermap> - Load script template', isCmd: false });
         studio.cliHistory.push({ text: '  banner <text> | hack <target> | export | rec | share | clear', isCmd: false });
+        studio.cliHistory.push({ text: '  speed <n> | glitch | degauss | replay | whoami | date', isCmd: false });
       }
       break;
     case 'ls':
@@ -2520,6 +2520,7 @@ var I18N = {
     pause: '⏸ Pause',
     resume: '▶ Resume',
     done: '✓ Done',
+    oscTitle: 'OSCILLOSCOPE',
     osdTitle: '[CRT MONITOR OSD SETUP v2.4]',
     osdGlow: 'PHOSPHOR GLOW',
     osdTrail: 'TRAIL PERSISTENCE',
@@ -2585,6 +2586,7 @@ var I18N = {
     pause: '⏸ Duraklat',
     resume: '▶ Devam Et',
     done: '✓ Tamamlandı',
+    oscTitle: 'OSİLOSKOP',
     osdTitle: '[CRT MONİTÖR OSD AYARLARI v2.4]',
     osdGlow: 'FOSFOR PARLAKLIĞI',
     osdTrail: 'İZ SÜRESİ (PERSISTENCE)',
@@ -2655,6 +2657,7 @@ function applyLanguage(lang) {
   setTxt('btnShare', dict.share);
   setTxt('btnRunJs', dict.runJs);
 
+  setTxt('lblOscTitle', dict.oscTitle);
   setTxt('lblOsdTitle', dict.osdTitle);
   setTxt('lblOsdGlow', dict.osdGlow);
   setTxt('lblOsdTrail', dict.osdTrail);
@@ -3263,6 +3266,12 @@ function bindStudioUI() {
   window.addEventListener('keydown', function (e) {
     var tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
     if (tag === 'textarea' || tag === 'input' || tag === 'select') return;
+    // While the Studio modal is open, keys belong to it: Escape closes it, nothing else
+    // may leak to the CLI or shortcuts (e.g. "R" restarting the relay behind the modal).
+    if (customModal && !customModal.classList.contains('hidden')) {
+      if (e.key === 'Escape') closeCustomModal();
+      return;
+    }
 
     if (studio.snakeActive) {
       if (e.key === 'Escape') {

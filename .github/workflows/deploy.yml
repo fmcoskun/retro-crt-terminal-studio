@@ -32,6 +32,9 @@ jobs:
       - name: Verify JavaScript syntax
         run: node --check script.js
 
+      - name: Stamp asset URLs with commit SHA (cache busting)
+        run: sed -i "s/?v=dev/?v=${GITHUB_SHA::7}/g" index.html
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
