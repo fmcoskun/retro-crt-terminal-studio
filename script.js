@@ -10,6 +10,27 @@ var _s = [];
 var x = 0;
 var y = 1;
 
+// localStorage can throw (privacy mode, blocked site data); never let that break the app.
+function safeStorageGet(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch (e) {
+    return null;
+  }
+}
+
+function safeStorageSet(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (e) {}
+}
+
+function safeStorageRemove(key) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch (e) {}
+}
+
 var DEFAULT_CUSTOM_CODE =
   '// CUSTOM SCRIPT RELAY INITIALIZED...\n\nfunction helloWorld() {\n  const message = "Welcome to the Retro CRT Terminal Studio!";\n  console.log(message);\n  return 42;\n}\n\nhelloWorld();\n// END RELAY _';
 
@@ -47,7 +68,7 @@ var studio = {
   targetScrollY: 0,
   manualScroll: false,
   isDraggingScrollbar: false,
-  customCode: DEFAULT_CUSTOM_CODE,
+  customCode: safeStorageGet('oldSkoolCustomCode') || DEFAULT_CUSTOM_CODE,
   cliActive: false,
   cliInput: '',
   cliHistory: [],
@@ -80,7 +101,7 @@ var studio = {
   snakeNextDir: { x: 1, y: 0 },
   snakeFood: { x: 10, y: 10 },
   snakeScore: 0,
-  snakeHighScore: parseInt(localStorage.getItem('oldSkoolSnakeHigh') || '0', 10),
+  snakeHighScore: parseInt(safeStorageGet('oldSkoolSnakeHigh') || '0', 10),
   snakeTickCounter: 0,
   jetActive: false,
   jetX: 300,
@@ -90,7 +111,7 @@ var studio = {
   jetEnemies: [],
   jetParticles: [],
   jetScore: 0,
-  jetHighScore: parseInt(localStorage.getItem('oldSkoolJetHigh') || '0', 10),
+  jetHighScore: parseInt(safeStorageGet('oldSkoolJetHigh') || '0', 10),
   jetHull: 100,
   jetWave: 1,
   jetTick: 0,
@@ -1171,7 +1192,7 @@ function renderJetGame(themeObj) {
           studio.jetScore += en.type === 'HEAVY' ? 30 : 15;
           if (studio.jetScore > studio.jetHighScore) {
             studio.jetHighScore = studio.jetScore;
-            localStorage.setItem('oldSkoolJetHigh', String(studio.jetHighScore));
+            safeStorageSet('oldSkoolJetHigh', String(studio.jetHighScore));
           }
           playKeySound(true);
           for (var p = 0; p < 8; p++) {
@@ -1189,7 +1210,8 @@ function renderJetGame(themeObj) {
       }
     }
 
-    if (en && en.y >= jetY - 12) {
+    // A destroyed enemy was already removed above; don't damage the hull or splice a second (wrong) enemy.
+    if (en.hp > 0 && en.y >= jetY - 12) {
       studio.jetHull -= 25;
       studio.jetEnemies.splice(eIdx, 1);
       triggerGlitch();
@@ -1470,7 +1492,7 @@ function renderSnakeGame(themeObj) {
       studio.snakeScore += 10;
       if (studio.snakeScore > studio.snakeHighScore) {
         studio.snakeHighScore = studio.snakeScore;
-        localStorage.setItem('oldSkoolSnakeHigh', String(studio.snakeHighScore));
+        safeStorageSet('oldSkoolSnakeHigh', String(studio.snakeHighScore));
       }
       playKeySound(true);
       spawnSnakeFood();
@@ -1941,18 +1963,45 @@ function sharePermalink() {
     var encoded = btoa(unescape(encodeURIComponent(jsonStr)));
     window.location.hash = 'crt=' + encoded;
     var fullUrl = window.location.href;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(fullUrl);
-    }
     var btnShare = document.getElementById('btnShare');
-    if (btnShare) {
-      var dict = I18N[studio.lang];
-      btnShare.textContent = dict.copied;
+    var dict = I18N[studio.lang];
+    var showShareResult = function (ok) {
+      if (!btnShare) return;
+      btnShare.textContent = ok ? dict.copied : dict.copyFailed;
       btnShare.classList.add('active');
       setTimeout(function () {
         btnShare.textContent = dict.share;
         btnShare.classList.remove('active');
       }, 1800);
+    };
+    var legacyCopy = function () {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = fullUrl;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch (err) {
+        return false;
+      }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      // writeText rejects on insecure origins / unfocused documents; fall back instead of throwing.
+      navigator.clipboard.writeText(fullUrl).then(
+        function () {
+          showShareResult(true);
+        },
+        function () {
+          showShareResult(legacyCopy());
+        }
+      );
+    } else {
+      showShareResult(legacyCopy());
     }
     return fullUrl;
   } catch (e) {
@@ -1976,6 +2025,8 @@ function loadStateFromUrlHash() {
     }
     if (data.h && studio.hologramModes.indexOf(data.h) !== -1) {
       studio.hologramMode = data.h;
+      var btnHoloHash = document.getElementById('btnHologram');
+      if (btnHoloHash) btnHoloHash.classList.toggle('active', data.h !== 'off');
     }
     if (data.tpl === 'custom' && data.c) {
       studio.customCode = data.c;
@@ -2378,6 +2429,9 @@ function convertImageFileToAscii(file, callback) {
       lines.push('*/', footerComment);
       callback(lines.join('\n'));
     };
+    img.onerror = function () {
+      callback(null);
+    };
     img.src = evt.target.result;
   };
   reader.readAsDataURL(file);
@@ -2414,6 +2468,7 @@ var I18N = {
     recStop: '⏹ Stop',
     share: '🔗 Share',
     copied: '✓ Copied!',
+    copyFailed: '⚠ Copy URL from address bar',
     runJs: '⚡ Run JS',
     pause: '⏸ Pause',
     resume: '▶ Resume',
@@ -2444,6 +2499,7 @@ var I18N = {
     bannerAdded: '✓ ASCII Banner inserted',
     convertingImg: 'Converting image...',
     imgConverted: '✓ Image converted to ASCII art!',
+    imgFailed: '⚠ Could not read this file as an image.',
     savedLocal: '💾 Saved to browser storage!',
     resetDone: '↺ Default code restored!'
   },
@@ -2477,6 +2533,7 @@ var I18N = {
     recStop: '⏹ Bitir',
     share: '🔗 Paylaş',
     copied: '✓ Kopyalandı!',
+    copyFailed: '⚠ Adres çubuğundan kopyalayın',
     runJs: '⚡ JS Çalıştır',
     pause: '⏸ Duraklat',
     resume: '▶ Devam Et',
@@ -2507,6 +2564,7 @@ var I18N = {
     bannerAdded: '✓ ASCII Banner eklendi',
     convertingImg: 'Resim dönüştürülüyor...',
     imgConverted: '✓ Resim ASCII sanatına dönüştürüldü!',
+    imgFailed: '⚠ Bu dosya resim olarak okunamadı.',
     savedLocal: '💾 Tarayıcı hafızasına kaydedildi!',
     resetDone: '↺ Varsayılan kod geri yüklendi!'
   }
@@ -2651,21 +2709,34 @@ function toggleVideoRecording() {
     }
     var stream = c.captureStream(60);
     studio.recordedChunks = [];
-    var mime = MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-      ? 'video/webm;codecs=vp9'
-      : 'video/webm';
-    studio.mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+    // Safari has no WebM support, so pick the first container the browser can actually record.
+    var candidates = ['video/webm;codecs=vp9', 'video/webm', 'video/mp4'];
+    var mime = '';
+    for (var mIdx = 0; mIdx < candidates.length; mIdx++) {
+      if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(candidates[mIdx])) {
+        mime = candidates[mIdx];
+        break;
+      }
+    }
+    try {
+      studio.mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    } catch (err) {
+      alert(studio.lang === 'tr' ? 'Video kaydı başlatılamadı: ' + err.message : 'Could not start video recording: ' + err.message);
+      return;
+    }
     studio.mediaRecorder.ondataavailable = function (e) {
       if (e.data && e.data.size > 0) {
         studio.recordedChunks.push(e.data);
       }
     };
     studio.mediaRecorder.onstop = function () {
-      var blob = new Blob(studio.recordedChunks, { type: 'video/webm' });
+      var outType = (studio.mediaRecorder && studio.mediaRecorder.mimeType) || mime || 'video/webm';
+      var ext = outType.indexOf('mp4') !== -1 ? '.mp4' : '.webm';
+      var blob = new Blob(studio.recordedChunks, { type: outType.split(';')[0] });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = 'old-school-script-relay-' + Date.now() + '.webm';
+      a.download = 'old-school-script-relay-' + Date.now() + ext;
       a.click();
       setTimeout(function () {
         URL.revokeObjectURL(url);
@@ -2814,12 +2885,17 @@ function bindStudioUI() {
   function closeCustomModal() {
     if (!customModal) return;
     customModal.classList.add('hidden');
+    // If the modal was cancelled, keep the dropdown in sync with what is actually on screen.
+    if (selectTemplate && selectTemplate.value !== studio.template) {
+      selectTemplate.value = studio.template;
+    }
   }
 
   if (selectTemplate) {
     selectTemplate.addEventListener('change', function (e) {
       var val = e.target.value;
-      studio.template = val;
+      // 'custom' only becomes the active template once the user presses "Relay to Screen".
+      if (val !== 'custom') studio.template = val;
       if (studio.hologramMode !== 'off') {
         if (val === 'cybermap') studio.hologramMode = 'globe';
         else if (val === 'starship') studio.hologramMode = 'f35';
@@ -2849,9 +2925,15 @@ function bindStudioUI() {
   if (imageAsciiInput && customTextarea) {
     imageAsciiInput.addEventListener('change', function (e) {
       var file = e.target.files && e.target.files[0];
+      // Reset so picking the same file again still fires 'change'.
+      e.target.value = '';
       if (!file) return;
       if (saveStatusHint) saveStatusHint.textContent = I18N[studio.lang].convertingImg;
       convertImageFileToAscii(file, function (asciiText) {
+        if (asciiText === null) {
+          if (saveStatusHint) saveStatusHint.textContent = I18N[studio.lang].imgFailed;
+          return;
+        }
         customTextarea.value = asciiText;
         if (saveStatusHint) saveStatusHint.textContent = I18N[studio.lang].imgConverted;
       });
@@ -2862,7 +2944,7 @@ function bindStudioUI() {
     btnSaveLocal.addEventListener('click', function () {
       studio.customCode = customTextarea.value.trim() ? customTextarea.value : DEFAULT_CUSTOM_CODE;
       customTextarea.value = studio.customCode;
-      localStorage.setItem('oldSkoolCustomCode', studio.customCode);
+      safeStorageSet('oldSkoolCustomCode', studio.customCode);
       if (saveStatusHint) saveStatusHint.textContent = I18N[studio.lang].savedLocal;
     });
   }
@@ -2871,7 +2953,7 @@ function bindStudioUI() {
     btnResetCustom.addEventListener('click', function () {
       studio.customCode = DEFAULT_CUSTOM_CODE;
       customTextarea.value = DEFAULT_CUSTOM_CODE;
-      localStorage.removeItem('oldSkoolCustomCode');
+      safeStorageRemove('oldSkoolCustomCode');
       if (saveStatusHint) saveStatusHint.textContent = I18N[studio.lang].resetDone;
       if (studio.template === 'custom') {
         loadRelayScript(studio.customCode.split('\n'));
